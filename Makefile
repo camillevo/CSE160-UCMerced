@@ -6,7 +6,7 @@ INCLUDE+=-IdataStructures/interfaces/ -IdataStructures/modules
 INCLUDE+=-Ilib/interfaces -Ilib/modules
 CFLAGS += -DTOSH_DATA_LENGTH=28
 CFLAGS+=$(INCLUDE)
-TINYOS_ROOT_DIR = /root/tiny-os/tiny/tinyos-main/
+TINYOS_ROOT_DIR = /home/ayadav6/Documents/workspace/tiny/tinyos-main/
 include $(TINYOS_ROOT_DIR)/Makefile.include
 
 CommandMsg.py: CommandMsg.h

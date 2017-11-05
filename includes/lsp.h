@@ -12,4 +12,10 @@ typedef nx_struct lspLink{
 	nx_uint8_t src;
 }lspLink;
 
+typedef nx_struct RoutingT{
+        nx_uint16_t dest;
+        nx_uint16_t nextHop;
+        nx_uint16_t cost;
+}RoutingT;
+
 #endif

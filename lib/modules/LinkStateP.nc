@@ -1,7 +1,8 @@
 // Module
 #include "../../includes/channels.h"
 #include "../../includes/packet.h"
-
+#define INFINITY 9999
+#define MAX 20
 
 module LinkStateP{
 
@@ -16,6 +17,7 @@ module LinkStateP{
   uses interface List<pack> as neighborList;
 
   uses interface Hashmap<int> as routingTable;
+  uses interface List<RoutingT> as dList;
   uses interface Random as Random;
 
 }
@@ -25,6 +27,9 @@ implementation{
   lspLink lspL;
   uint16_t lspAge = 0;
   bool isvalueinarray(uint8_t val, uint8_t *arr, uint8_t size);
+  int makeGraph();
+
+  int G[MAX][MAX],i,j,n,u;
 
   void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
 
@@ -40,7 +45,7 @@ implementation{
     int i = 0;
     for(i=0; i<call routingTable.size();i++){
       dbg(GENERAL_CHANNEL, "Dest: %d \t firstHop: %d\n", i+1, call routingTable.get(i+1));
-    }
+     }
   }
 
   command void LinkState.print()
@@ -142,7 +147,15 @@ implementation{
       memcpy(Package->payload, payload, length);
     }
 
-    int CalculateMaxNodes()
+    int makeGraph(){
+
+
+
+    }
+
+
+
+    /*int CalculateMaxNodes()
     {
       uint8_t size = call lspLinkList.size();
       uint8_t i =0;
@@ -155,9 +168,9 @@ implementation{
 
       }
       return max_node;
-    }
+    }*/
 
-    //dijkstraTimer
+    //dijkstraTimer https://www.thecrazyprogrammer.com/2014/03/dijkstra-algorithm-for-finding-shortest-path-of-a-graph.html
     event void dijkstraTimer.fired()
     {
       {
@@ -165,11 +178,13 @@ implementation{
         int i = 0;
         int j = 0;
         int next_hop;
-        int maxNode = CalculateMaxNodes();
+        int maxNode = 12;
         int cost[maxNode][maxNode], distance[maxNode], pred_list[maxNode];
         int visited[maxNode], node_count, mindistance, nextnode;
-        int start_node = TOS_NODE_ID-1;
+        int start_node = TOS_NODE_ID;
         bool adjMatrix[maxNode][maxNode];
+        //dbg(ROUTING_CHANNEL,"SOURCE NODE %d\n",TOS_NODE_ID);
+
         for(i=0;i<maxNode;i++){
           for(j=0;j<maxNode;j++){
             adjMatrix[i][j] = FALSE;
@@ -177,7 +192,7 @@ implementation{
         }
         for(i=0; i<size;i++){
           lspLink stuff = call lspLinkList.get(i);
-          adjMatrix[stuff.src-1][stuff.neighbor-1] = TRUE;
+          adjMatrix[stuff.src][stuff.neighbor] = TRUE;
         }
         for(i=0;i<maxNode;i++){
           for(j=0;j<maxNode;j++){
@@ -187,7 +202,8 @@ implementation{
             cost[i][j] = adjMatrix[i][j];
           }
         }
-        for (i = 0; i < maxNode; i++) {
+        for
+        (i = 0; i < maxNode; i++) {
           distance[i] = cost[start_node][i];
           pred_list[i] = start_node;
           visited[i] = 0;
@@ -215,21 +231,37 @@ implementation{
           node_count++;
         }
 
+        //print the path and distance of each node
+
+  /*for(i=0;i<maxNode;i++)
+      if(i!=start_node)
+      {
+          printf("\nDistance of node%d=%d",i,distance[i]);
+          printf("\nPath=%d",i);
+
+          j=i;
+          do
+          {
+              j=pred_list[j];
+              printf("<-%d",j);
+          }while(j!=start_node);
+  }*/
+
         for (i = 0; i < maxNode; i++){
-          next_hop = TOS_NODE_ID-1;
+          next_hop = TOS_NODE_ID;
           if (i != start_node) {
             j = i;
             do {
               if (j!=start_node){
-                next_hop = j+1;
+                next_hop = j;
               }
               j = pred_list[j];
               } while (j != start_node);
             }
             else{
-              next_hop = start_node+1;
+              next_hop = start_node;
             }
-            call routingTable.insert(i+1, next_hop);
+            call routingTable.insert(i, next_hop);
           }
 
         }
