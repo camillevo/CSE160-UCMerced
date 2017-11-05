@@ -2,7 +2,7 @@
 #include "../../includes/channels.h"
 #include "../../includes/packet.h"
 #define INFINITY 9999
-#define MAX 20
+#define MAXNODES 100
 
 module LinkStateP{
 
@@ -29,8 +29,6 @@ implementation{
   bool isvalueinarray(uint8_t val, uint8_t *arr, uint8_t size);
   int makeGraph();
 
-  int G[MAX][MAX],i,j,n,u;
-
   void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
 
   command void LinkState.start(){
@@ -45,7 +43,7 @@ implementation{
     int i = 0;
     for(i=0; i<call routingTable.size();i++){
       dbg(GENERAL_CHANNEL, "Dest: %d \t firstHop: %d\n", i+1, call routingTable.get(i+1));
-     }
+    }
   }
 
   command void LinkState.print()
@@ -154,75 +152,81 @@ implementation{
     }
 
 
+    //dijkstraTimer
 
-    /*int CalculateMaxNodes()
-    {
-      uint8_t size = call lspLinkList.size();
-      uint8_t i =0;
-      uint8_t max_node = 0;
-      for(i; i<size;i++){
-        lspLink stuff = call lspLinkList.get(i);
-        if (stuff.src > max_node){
-          max_node = stuff.src;
-        }
-
-      }
-      return max_node;
-    }*/
-
-    //dijkstraTimer https://www.thecrazyprogrammer.com/2014/03/dijkstra-algorithm-for-finding-shortest-path-of-a-graph.html
+    // Source Reference - https://www.thecrazyprogrammer.com/2014/03/dijkstra-algorithm-for-finding-shortest-path-of-a-graph.html
     event void dijkstraTimer.fired()
     {
       {
         int size = call lspLinkList.size();
-        int i = 0;
-        int j = 0;
-        int next_hop;
-        int maxNode = 12;
-        int cost[maxNode][maxNode], distance[maxNode], pred_list[maxNode];
+        int maxNode = MAXNODES;
+        int i,j,next_hop, cost[maxNode][maxNode], distance[maxNode], pred_list[maxNode];
         int visited[maxNode], node_count, mindistance, nextnode;
+        //pred[] stores the predecessor of each node
+        //count gives the number of nodes seen so far
+        //create the cost matrix
+
         int start_node = TOS_NODE_ID;
         bool adjMatrix[maxNode][maxNode];
-        //dbg(ROUTING_CHANNEL,"SOURCE NODE %d\n",TOS_NODE_ID);
+        //dbg(ROUTING_CHANNEL,"\nSOURCE NODE %d\n",TOS_NODE_ID);
 
-        for(i=0;i<maxNode;i++){
+        for(i=0;i<maxNode;i++)
+        {
           for(j=0;j<maxNode;j++){
             adjMatrix[i][j] = FALSE;
           }
         }
+
         for(i=0; i<size;i++){
           lspLink stuff = call lspLinkList.get(i);
           adjMatrix[stuff.src][stuff.neighbor] = TRUE;
         }
-        for(i=0;i<maxNode;i++){
-          for(j=0;j<maxNode;j++){
+
+        for(i=0;i<maxNode;i++)
+        {
+          for(j=0;j<maxNode;j++)
+          {
             if (adjMatrix[i][j] == 0)
-            cost[i][j] = 999999;
+            cost[i][j] = INFINITY;
             else
             cost[i][j] = adjMatrix[i][j];
           }
         }
-        for
-        (i = 0; i < maxNode; i++) {
+
+        //initialize pred[],distance[] and visited[]
+        for(i = 1; i < maxNode; i++)
+        {
           distance[i] = cost[start_node][i];
           pred_list[i] = start_node;
           visited[i] = 0;
         }
+
+
         distance[start_node] = 0;
         visited[start_node] = 1;
         node_count = 1;
-        while (node_count < maxNode - 1) {
-          mindistance = 999999;
-          for (i = 0; i < maxNode; i++){
-            if (distance[i] < mindistance && !visited[i]) {
+
+        while (node_count < maxNode - 1)
+        {
+          mindistance = INFINITY;
+          //nextnode gives the node at minimum distance
+          for (i = 1; i < maxNode; i++){
+            if (distance[i] <= mindistance && !visited[i])
+            {
               mindistance = distance[i];
               nextnode = i;
             }
+
           }
+
           visited[nextnode] = 1;
-          for (i = 0; i < maxNode; i++){
+          //check if a better path exists through nextnode
+          for (i = 1; i < maxNode; i++)
+          {
+
             if (!visited[i]){
-              if (mindistance + cost[nextnode][i] < distance[i]) {
+              if (mindistance + cost[nextnode][i] < distance[i])
+              {
                 distance[i] = mindistance + cost[nextnode][i];
                 pred_list[i] = nextnode;
               }
@@ -231,24 +235,27 @@ implementation{
           node_count++;
         }
 
+
         //print the path and distance of each node
+        /*
+        for(i=1;i<maxNode;i++)
+        if(i!=start_node)
+        {
+        printf("\nDistance of node %d=%d",i,distance[i]);
+        printf("\nPath=%d",i);
 
-  /*for(i=0;i<maxNode;i++)
-      if(i!=start_node)
-      {
-          printf("\nDistance of node%d=%d",i,distance[i]);
-          printf("\nPath=%d",i);
+        j=i;
+        do
+        {
+        j=pred_list[j];
+        printf("<-%d",j);
+        }while(j!=start_node);
+      }
+      */
 
-          j=i;
-          do
-          {
-              j=pred_list[j];
-              printf("<-%d",j);
-          }while(j!=start_node);
-  }*/
-
-        for (i = 0; i < maxNode; i++){
-          next_hop = TOS_NODE_ID;
+      for (i = 1; i < maxNode; i++){
+        next_hop = TOS_NODE_ID;
+        if (distance[i] != INFINITY){
           if (i != start_node) {
             j = i;
             do {
@@ -261,9 +268,13 @@ implementation{
             else{
               next_hop = start_node;
             }
-            call routingTable.insert(i, next_hop);
+            if (next_hop != 0 )
+            {
+              call routingTable.insert(i, next_hop);
+            }
           }
-
         }
+
       }
     }
+  }
