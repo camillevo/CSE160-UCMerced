@@ -131,7 +131,7 @@ class TestSim:
 def main():
     s = TestSim();
     s.runTime(5);
-    s.loadTopo("test_topo.topo");
+    s.loadTopo("house.topo");
     s.loadNoise("no_noise.txt");
     s.bootAll();
     s.addChannel(s.COMMAND_CHANNEL);
@@ -147,7 +147,7 @@ def main():
     #Project 2 - END
 
     s.runTime(100);
-    s.neighborDMP(20);
+    s.neighborDMP(4);
     s.runTime(20);
 
     #s.ping(2, 5, "Hello, World");
@@ -155,11 +155,11 @@ def main():
     #s.runTime(10);
     #s.neighborDMP(5);
     #s.runTime(20);
-    s.linkstateDMP(30);
+    s.linkstateDMP(4);
     s.runTime(20);
-    s.routeDMP(10);
+    s.routeDMP(4);
     s.runTime(20);
-    s.ping(4,20, "Working, eh?");
+    s.ping(4,10, "Working, eh?");
     s.runTime(40);
 
 if __name__ == '__main__':

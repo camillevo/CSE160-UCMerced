@@ -63,11 +63,16 @@ implementation{
         { //Destination found
           dbg(FLOODING_CHANNEL, "This is the Destination from : %d to %d\n",myMsg->src,myMsg->dest);
           dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg->payload);
-          if(myMsg->protocol == PROTOCOL_LINK){
+          //Ping Back to the Source
+          if(myMsg->protocol == PROTOCOL_PING)
+          {
+            dbg(GENERAL_CHANNEL, "PING-REPLY EVENT \n");
+            dbg(FLOODING_CHANNEL, "Going to ping from: %d to %d with seq %d\n", myMsg->dest,myMsg->src,myMsg->seq);
+
             checkPackets(myMsg);
-            if(call routingTable.contains(myMsg -> dest)){
+            if(call routingTable.contains(myMsg -> src)){
               dbg(NEIGHBOR_CHANNEL, "to get to:%d, send through:%d\n", myMsg -> src, call routingTable.get(myMsg -> src));
-              makePack(&sendPackage, myMsg->dest, myMsg->src, MAX_TTL, PROTOCOL_LINK_REPLY, myMsg->seq, (uint8_t *) myMsg->payload, sizeof(myMsg->payload));
+              makePack(&sendPackage, myMsg->dest, myMsg->src, MAX_TTL, PROTOCOL_PINGREPLY, myMsg->seq, (uint8_t *) myMsg->payload, sizeof(myMsg->payload));
               call InternalSender.send(sendPackage, call routingTable.get(myMsg -> src));
             }
             else{
@@ -76,30 +81,9 @@ implementation{
               call InternalSender.send(sendPackage, AM_BROADCAST_ADDR);
             }
             return msg;
-          }
-          //Ping Back to the Source
-          if(myMsg->protocol == PROTOCOL_PING)
-          {
-            dbg(GENERAL_CHANNEL, "PING-REPLY EVENT \n");
-            dbg(FLOODING_CHANNEL, "Going to ping from: %d to %d with seq %d\n", myMsg->dest,myMsg->src,myMsg->seq);
-
-            makePack(&sendPackage, myMsg->dest, myMsg->src, MAX_TTL, PROTOCOL_PINGREPLY, myMsg->seq, myMsg->payload, PACKET_MAX_PAYLOAD_SIZE);
-            //myMsg->TTL = myMsg->TTL-1;
-
-            //tempDest = myMsg->src; //making a temporary dest as source
-            //myMsg->src =  myMsg->dest;
-            //myMsg->dest = tempDest;
-            //myMsg->protocol = PROTOCOL_PINGREPLY;
-            if(call packetList.isFull())
-            { //check for List size. If it has reached the limit. #popfront
-              call packetList.popfront();
-            }
-            call packetList.pushback(*myMsg); //push packets to the packetlist that are already seen
-
-            call InternalSender.send(sendPackage, AM_BROADCAST_ADDR);
 
             }
-            else if(myMsg->protocol == PROTOCOL_PINGREPLY  || myMsg->protocol== PROTOCOL_LINK_REPLY)
+            else if(myMsg->protocol == PROTOCOL_PINGREPLY)
             {
               dbg(FLOODING_CHANNEL, "Received a Ping Reply from %d\n", myMsg->src);
             }
@@ -160,29 +144,19 @@ implementation{
             //call lsrTimer.startPeriodic(60000 + (uint16_t)((call Random.rand16())%200));
             return msg;
           }
-          else if(myMsg->protocol == PROTOCOL_LINK){
+          else
+          {
             checkPackets(myMsg);
             if(call routingTable.contains(myMsg -> src)){
               dbg(NEIGHBOR_CHANNEL, "to get to:%d, send through:%d\n", myMsg -> dest, call routingTable.get(myMsg -> dest));
-              makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, PROTOCOL_LINK, myMsg->seq, (uint8_t *) myMsg->payload, sizeof(myMsg->payload));
+              makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol, myMsg->seq, (uint8_t *) myMsg->payload, sizeof(myMsg->payload));
               call InternalSender.send(sendPackage, call routingTable.get(myMsg -> dest));
             }
             else{
               dbg(NEIGHBOR_CHANNEL, "Couldn't find the routing table for:%d so flooding\n",TOS_NODE_ID);
-              makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, PROTOCOL_PING, myMsg->seq, (uint8_t *) myMsg->payload, sizeof(myMsg->payload));
+              makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol, myMsg->seq, (uint8_t *) myMsg->payload, sizeof(myMsg->payload));
               call InternalSender.send(sendPackage, AM_BROADCAST_ADDR);
             }
-            return msg;
-          }
-          else
-          {
-            //dbg(FLOODING_CHANNEL, "Forwarding Packet : %d to %d with seq %d\n",myMsg->src,myMsg->dest,myMsg->seq);
-            //dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg->payload);
-
-            checkPackets(myMsg);
-            makePack(&sendPackage, myMsg->src, myMsg->dest, myMsg->TTL-1, myMsg->protocol, myMsg->seq, (uint8_t *) myMsg->payload, sizeof(myMsg->payload));
-
-            call InternalSender.send(sendPackage, AM_BROADCAST_ADDR);
             return msg;
           }
 

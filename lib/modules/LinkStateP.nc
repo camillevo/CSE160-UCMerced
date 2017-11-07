@@ -2,7 +2,7 @@
 #include "../../includes/channels.h"
 #include "../../includes/packet.h"
 #define INFINITY 9999
-#define MAXNODES 100
+#define MAXNODES 20
 
 module LinkStateP{
 
@@ -35,14 +35,14 @@ implementation{
     // one shot timer and include random element to it.
     //dbg(GENERAL_CHANNEL, "Booted\n");
     call lsrTimer.startPeriodic(80000 + (uint16_t)((call Random.rand16())%10000));
-    call dijkstraTimer.startPeriodic(90000 + (uint16_t)((call Random.rand16())%10000));
+    call dijkstraTimer.startOneShot(90000 + (uint16_t)((call Random.rand16())%10000));
   }
 
   command void LinkState.printRoutingTable()
   {
     int i = 0;
-    for(i=0; i<call routingTable.size();i++){
-      dbg(GENERAL_CHANNEL, "Dest: %d \t firstHop: %d\n", i+1, call routingTable.get(i+1));
+    for(i=1; i<=call routingTable.size();i++){
+      dbg(GENERAL_CHANNEL, "Dest: %d \t firstHop: %d\n", i, call routingTable.get(i));
     }
   }
 
@@ -101,6 +101,7 @@ implementation{
         lspL.cost = 1;
         lspL.src = TOS_NODE_ID;
         call lspLinkList.pushback(lspL);
+	       call dijkstraTimer.startOneShot(90000 + (uint16_t)((call Random.rand16())%10000));
       }
       if(!isvalueinarray(neighborNode.src,neighborArr,neighborListSize)){
         neighborArr[i] = neighborNode.src;
@@ -145,19 +146,25 @@ implementation{
       memcpy(Package->payload, payload, length);
     }
 
-    int makeGraph(){
-
-
-
+    void CalculateUniqueNodes(){
+      //get unique nodes for dijkstra
+      int size = call lspLinkList.size();
+      int nodesize[MAXNODES];
+      int i;
+      for (i=0;i<size;i++){
+        lspLink stuff = call lspLinkList.get(i);
+        if (!isvalueinarray(stuff.src, nodesize, MAXNODES)){
+          nodesize[i] = stuff.src;
+        }
+      }
     }
 
-
-    //dijkstraTimer
+    //dijkstra
 
     // Source Reference - https://www.thecrazyprogrammer.com/2014/03/dijkstra-algorithm-for-finding-shortest-path-of-a-graph.html
     event void dijkstraTimer.fired()
-    {
       {
+        int nodesize[MAXNODES];
         int size = call lspLinkList.size();
         int maxNode = MAXNODES;
         int i,j,next_hop, cost[maxNode][maxNode], distance[maxNode], pred_list[maxNode];
@@ -169,6 +176,9 @@ implementation{
         int start_node = TOS_NODE_ID;
         bool adjMatrix[maxNode][maxNode];
         //dbg(ROUTING_CHANNEL,"\nSOURCE NODE %d\n",TOS_NODE_ID);
+
+
+
 
         for(i=0;i<maxNode;i++)
         {
@@ -194,7 +204,7 @@ implementation{
         }
 
         //initialize pred[],distance[] and visited[]
-        for(i = 1; i < maxNode; i++)
+        for(i = 0; i < maxNode; i++)
         {
           distance[i] = cost[start_node][i];
           pred_list[i] = start_node;
@@ -210,7 +220,7 @@ implementation{
         {
           mindistance = INFINITY;
           //nextnode gives the node at minimum distance
-          for (i = 1; i < maxNode; i++){
+          for (i = 0; i < maxNode; i++){
             if (distance[i] <= mindistance && !visited[i])
             {
               mindistance = distance[i];
@@ -221,7 +231,7 @@ implementation{
 
           visited[nextnode] = 1;
           //check if a better path exists through nextnode
-          for (i = 1; i < maxNode; i++)
+          for (i = 0; i < maxNode; i++)
           {
 
             if (!visited[i]){
@@ -253,7 +263,7 @@ implementation{
       }
       */
 
-      for (i = 1; i < maxNode; i++){
+      for (i = 0; i < maxNode; i++){
         next_hop = TOS_NODE_ID;
         if (distance[i] != INFINITY){
           if (i != start_node) {
@@ -275,6 +285,5 @@ implementation{
           }
         }
 
-      }
     }
   }
