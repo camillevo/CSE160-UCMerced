@@ -24,6 +24,9 @@ module Node{
   uses interface CommandHandler;
   uses interface NeighborDiscovery;
   uses interface LinkState;
+
+  uses interface Transport;
+
 }
 implementation{
   pack sendPackage;
@@ -93,20 +96,26 @@ implementation{
 
       event void CommandHandler.printDistanceVector(){}
 
-        event void CommandHandler.setTestServer(){}
+        event void CommandHandler.setTestServer()
+        {
+          dbg(ROUTING_CHANNEL,"SETTING UP TEST SERVER\n");
+        }
 
-          event void CommandHandler.setTestClient(){}
+        event void CommandHandler.setTestClient()
+        {
+          dbg(ROUTING_CHANNEL,"SETTING UP TEST CLIENT\n");
+        }
 
-            event void CommandHandler.setAppServer(){}
+        event void CommandHandler.setAppServer(){}
 
-              event void CommandHandler.setAppClient(){}
+          event void CommandHandler.setAppClient(){}
 
-                void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, uint8_t* payload, uint8_t length){
-                  Package->src = src;
-                  Package->dest = dest;
-                  Package->TTL = TTL;
-                  Package->seq = seq;
-                  Package->protocol = protocol;
-                  memcpy(Package->payload, payload, length);
-                }
-              }
+            void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, uint8_t* payload, uint8_t length){
+              Package->src = src;
+              Package->dest = dest;
+              Package->TTL = TTL;
+              Package->seq = seq;
+              Package->protocol = protocol;
+              memcpy(Package->payload, payload, length);
+            }
+          }

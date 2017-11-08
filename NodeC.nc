@@ -46,4 +46,7 @@ implementation {
     LinkStateC.neighborListC-> neighborListC;
     LinkStateC.HashmapC -> HashmapC;
 
+    components TransportC;
+    Node.Transport -> TransportC;
+
 }

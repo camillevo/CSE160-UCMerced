@@ -1,5 +1,4 @@
-#include "../../packet.h"
-#include "../../socket.h"
+#include "../../includes/socket.h"
 
 /**
  * The Transport interface handles sockets and is a layer of abstraction
@@ -45,7 +44,7 @@ interface Transport{
     * if there is one, connect to it.
     * @param
     *    socket_t fd: file descriptor that is associated with the socket
-    *       that is attempting an accept. remember, only do on listen. 
+    *       that is attempting an accept. remember, only do on listen.
     * @side Server
     * @return socket_t - returns a new socket if the connection is
     *    accepted. this socket is a copy of the server socket but with
@@ -72,14 +71,14 @@ interface Transport{
    command uint16_t write(socket_t fd, uint8_t *buff, uint16_t bufflen);
 
    /**
-    * This will pass the packet so you can handle it internally. 
+    * This will pass the packet so you can handle it internally.
     * @param
     *    pack *package: the TCP packet that you are handling.
-    * @Side Client/Server 
+    * @Side Client/Server
     * @return uint16_t - return SUCCESS if you are able to handle this
     *    packet or FAIL if there are errors.
     */
-   command error_t receive(pack* package);
+  // command error_t receive(pack* package);
 
    /**
     * Read from the socket and write this data to the buffer. This data
@@ -96,13 +95,13 @@ interface Transport{
     * @return uint16_t - return the amount of data you are able to read
     *    from the pass buffer. This may be shorter then bufflen
     */
-   command uint16_t read(socket_t fd, uint8_t *buff, uint16_t bufflen);
+   //command uint16_t read(socket_t fd, uint8_t *buff, uint16_t bufflen);
 
    /**
     * Attempts a connection to an address.
     * @param
     *    socket_t fd: file descriptor that is associated with the socket
-    *       that you are attempting a connection with. 
+    *       that you are attempting a connection with.
     * @param
     *    socket_addr_t *addr: the destination address and port where
     *       you will atempt a connection.
@@ -110,38 +109,38 @@ interface Transport{
     * @return socket_t - returns SUCCESS if you are able to attempt
     *    a connection with the fd passed, else return FAIL.
     */
-   command error_t connect(socket_t fd, socket_addr_t * addr);
+  // command error_t connect(socket_t fd, socket_addr_t * addr);
 
    /**
     * Closes the socket.
     * @param
     *    socket_t fd: file descriptor that is associated with the socket
-    *       that you are closing. 
+    *       that you are closing.
     * @side Client/Server
     * @return socket_t - returns SUCCESS if you are able to attempt
     *    a closure with the fd passed, else return FAIL.
     */
-   command error_t close(socket_t fd);
+  // command error_t close(socket_t fd);
 
    /**
     * A hard close, which is not graceful. This portion is optional.
     * @param
     *    socket_t fd: file descriptor that is associated with the socket
-    *       that you are hard closing. 
+    *       that you are hard closing.
     * @side Client/Server
     * @return socket_t - returns SUCCESS if you are able to attempt
     *    a closure with the fd passed, else return FAIL.
     */
-   command error_t release(socket_t fd);
+  // command error_t release(socket_t fd);
 
    /**
     * Listen to the socket and wait for a connection.
     * @param
     *    socket_t fd: file descriptor that is associated with the socket
-    *       that you are hard closing. 
+    *       that you are hard closing.
     * @side Server
-    * @return error_t - returns SUCCESS if you are able change the state 
+    * @return error_t - returns SUCCESS if you are able change the state
     *   to listen else FAIL.
     */
-   command error_t listen(socket_t fd);
+   //command error_t listen(socket_t fd);
 }

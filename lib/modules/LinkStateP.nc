@@ -17,7 +17,6 @@ module LinkStateP{
   uses interface List<pack> as neighborList;
 
   uses interface Hashmap<int> as routingTable;
-  uses interface List<RoutingT> as dList;
   uses interface Random as Random;
 
 }
@@ -146,7 +145,7 @@ implementation{
       memcpy(Package->payload, payload, length);
     }
 
-    void CalculateUniqueNodes(){
+    /*void CalculateUniqueNodes(){
       //get unique nodes for dijkstra
       int size = call lspLinkList.size();
       int nodesize[MAXNODES];
@@ -157,7 +156,7 @@ implementation{
           nodesize[i] = stuff.src;
         }
       }
-    }
+    }*/
 
     //dijkstra
 
