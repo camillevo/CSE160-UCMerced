@@ -98,7 +98,9 @@ implementation{
 
         event void CommandHandler.setTestServer()
         {
-          dbg(ROUTING_CHANNEL,"SETTING UP TEST SERVER\n");
+          dbg(ROUTING_CHANNEL,"SETTING UP TEST SERVER for %d on port %d\n", TOS_NODE_ID);
+          call Transport.socket();
+          
         }
 
         event void CommandHandler.setTestClient()
